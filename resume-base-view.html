@@ -80,7 +80,7 @@ var contiguousCentroid = [-96.583333, 39.0],
 					"institution" : "Elkhorn High School",
 					"title" : "Student",
 					"GPA" : "4.0",
-					"honors" : ["National Honors Society"],
+					"honors" : ["National Honors Society Society Society Society Society Society Society Society"],
 					"timeStart" : new Date(2001, 8, 15),
 					"timeEnd" : new Date(2005, 5, 25),
 					"index" : 0,
@@ -153,8 +153,9 @@ var contiguousCentroid = [-96.583333, 39.0],
 	honAccumLen = 0;
 
 var padding = {w : 0.35, h : 0.35}, //ems
-	lineHeight = 1.2, // ems
-	textAdjust = 4; // ems, for moving the text to the right so it doesn't overlap the timescale
+	lineHeight = 2, // ems
+	textAdjust = 4,// ems, for moving the text to the right so it doesn't overlap the timescale
+	textAdjH = 0; // for adjusting the text away from the top of the page
 
 var paperMargin = {
 	l: 0.1 * yurDPI,
@@ -212,28 +213,28 @@ d3.json("us.json", function(error, topo) {
 	//		state = thestates.features.filter(function(d) { return d.id !== 15 && d.id !== 2; })[0];
 
 	// create svg variable
-	var svgOuter = d3.select("body").append("svg")
+	var svg = d3.select("body").append("svg")
 			.attr("id", "svgOuter")
 			.attr("width", width)
 			.attr("height", height);
 
 
 	// create border around svg
-	var borderPath = svgOuter.append("rect")
+	var borderPath = svg.append("rect")
 			.attr("class", "border")
 			.attr("x", 0)
 			.attr("y", 0)
-			.attr("height", height)
 			.attr("width", width)
+			.attr("height", height)
 			.style("stroke", "black")
 			.style("fill", "none")
 			.style("stroke-width", "5");
 
-	var svg = d3.select("#svgOuter").append("svg")
-			.attr("width", innerWidth)
-			.attr("height", innerHeight)
+	/*var svg = d3.select("#svgOuter").append("svg")	
 			.attr("x", paperMargin.l)
-			.attr("y", paperMargin.t);
+			.attr("y", paperMargin.t)
+			.attr("width", innerWidth)
+			.attr("height", innerHeight);*/
 
 	// load dict of state ids, names, and abbreviations (id, code, name)
 	d3.tsv("us-state-names.tsv", function(error, tsv) {
@@ -321,13 +322,14 @@ d3.json("us.json", function(error, topo) {
 			})
 			.attr("x", function() {return (textAdjust + padding.w) + "em";})
 			.attr("y", function (d) {
-				yPos = d.index * lineHeight * d.importance + padding.h + 3 + "em";
+				yPos = d.index * lineHeight * d.importance + padding.h + "em";
+				console.log(d.placeName + ' yPos: ' + yPos);
 				return yPos;
 			})
 			.attr("dy", lineHeight + padding.h + "em")
 			.text(function (d) {
 				if (d.honors == undefined) {honorsStr = "";} else {
-					honorsStr = " -- honors:";
+					honorsStr = " -- honors:"
 					for (var i = 0; i< d.honors.length; i++) {
 						honorsStr = honorsStr + " " + d.honors[i] + ","
 					}
@@ -339,8 +341,8 @@ d3.json("us.json", function(error, topo) {
 			.attr("font-size", function (d) {
 				return fontSize * d.importance + "px";
 			})
-			.attr("fill", "#fff")
-			.call(wrap, innerWidth/2 - textAdjust - padding.w);
+			.attr("fill", "#fff");
+			//.call(wrap, innerWidth/2 - textAdjust - padding.w);
 
 
 	var svgChart = d3.select('svg').append('svg')
@@ -383,7 +385,7 @@ d3.json("us.json", function(error, topo) {
 		svg.append("rect")
 				.attr("x", bbox.x  - padding.w * fontSize)
 				.attr("y", bbox.y  - padding.h * fontSize)
-				.attr("width", innerWidth / 2  + (padding.w * 2) *fontSize)
+				.attr("width", innerWidth / 2  + (padding.w * 2) * fontSize)
 				.attr("height", bbox.height  + (padding.h * 2) * fontSize)
 				.style("fill", "000")
 				.style("opacity", "0.5");
@@ -405,8 +407,8 @@ function wrap(text, width) {
 		var text = d3.select(this);
 		console.log(this);
 		if (textCount>0) {
-			console.log("changing y from " + text.attr("y") + " to " + (parseFloat(lastY.slice(0,lastY.length - 2)) + 1.6 + padding.w + "em"));
-			d3.select(this).attr("y", parseFloat(lastY.slice(0,lastY.length - 2)) + 1.6 + padding.h + 3 + "em");
+			console.log("changing y from " + text.attr("y") + " to " + (parseFloat(lastY.slice(0,lastY.length - 2)) + 1.6 + padding.h + "em"));
+			d3.select(this).attr("y", parseFloat(lastY.slice(0,lastY.length - 2)) + 1.6 + padding.h + "em");
 		}
 		var words = text.text().split(/\s+/).reverse(),
 				word,
@@ -423,9 +425,13 @@ function wrap(text, width) {
 				line.pop();
 				tspan.text(line.join(" "));
 				line = [word];
-				tspan = text.append("tspan").attr("x", textAdjust + padding.w + "em").attr("y",++lineNumber * lineHeight + padding.h + 3 + "em").attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+				y = ++lineNumber * lineHeight + padding.h;
+				dy2 = ++lineNumber * lineHeight;
+				tspan = text.append("tspan").attr("x", textAdjust + padding.w + "em").attr("y", y + "em").attr("dy", dy2 + "em").text(word);
 				lastY = ++lineNumber * lineHeight + padding.h + "em";
-				console.log(lastY);
+				console.log('y: ' + y);
+				console.log('dy: ' + dy2);
+				console.log('lastY: ' + lastY);
 			}
 		}
 	textCount+=1;
